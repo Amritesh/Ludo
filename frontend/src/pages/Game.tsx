@@ -50,16 +50,16 @@ export default function Game() {
           if (msg.name === 'SNAPSHOT' || msg.name === 'GAME_STARTED') {
             setGameState(msg.data);
           } else if (msg.name === 'GAME_FINISHED') {
-             playSound('WIN');
+             if (msg.data.winnerId !== playerId) playSound('WIN');
              setGameState(prev => prev ? { ...prev, status: 'FINISHED', winnerId: msg.data.winnerId } : null);
           } else if (msg.name === 'TURN_CHANGED') {
             setGameState(prev => prev ? { ...prev, currentTurnPlayerId: msg.data.playerId, turn: { ...prev.turn, ...msg.data } } : null);
           } else if (msg.name === 'DICE_ROLL') {
-             playSound('ROLL');
+             if (msg.data.playerId !== playerId) playSound('ROLL');
              setGameState(prev => prev ? { ...prev, turn: { ...prev.turn, diceValue: msg.data.value, phase: 'NEED_MOVE' } } : null);
           } else if (msg.name === 'PIECE_MOVED') {
-             const event = msg.data.lastEvent;
-             if (event?.type === 'PIECE_MOVED') {
+             const event = msg.data;
+             if (event?.playerId !== playerId && event?.type === 'PIECE_MOVED') {
                if (event.payload.cut) playSound('CUT');
                else if (event.payload.to === 58) playSound('HOME');
                else playSound('MOVE');
@@ -123,6 +123,7 @@ export default function Game() {
   const roll = async () => {
     if (rolling || !gameState) return;
     setRolling(true);
+    playSound('ROLL');
     try {
       const res = await fetch(`${API_BASE_URL}/api/game/action`, {
         method: 'POST',
@@ -160,7 +161,16 @@ export default function Game() {
       });
       const data = await res.json();
       if (data.error) console.warn(data.error);
-      else if (data.gameState) setGameState(data.gameState);
+      else if (data.gameState) {
+        const event = data.gameState.lastEvent;
+        if (event?.type === 'PIECE_MOVED') {
+           if (event.payload.cut) playSound('CUT');
+           else if (event.payload.to === 58) playSound('HOME');
+           else playSound('MOVE');
+        }
+        if (data.gameState.status === 'FINISHED') playSound('WIN');
+        setGameState(data.gameState);
+      }
     } catch (err) {
       console.error(err);
     }
