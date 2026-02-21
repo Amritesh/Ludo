@@ -5,6 +5,10 @@ on:
     branches: [ main ]
     paths:
       - 'frontend/**'
+      - '.github/workflows/deploy.yml'
+
+permissions:
+  contents: write
 
 jobs:
   build-and-deploy:
@@ -13,11 +17,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
       - name: Install and Build
         run: |
           cd frontend
           npm install
           npm run build
+          # Create 404.html for SPA routing on GH Pages
+          cp dist/index.html dist/404.html
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
 

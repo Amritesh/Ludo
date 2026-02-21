@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { GameState } from '../types/game';
 import Board from '../components/Board';
 import Piece from '../components/Piece';
-import { Dice6, RefreshCw, Trophy, ChevronLeft, Users, Zap } from 'lucide-react';
+import { Dice6, Trophy, ChevronLeft, Users, Zap } from 'lucide-react';
 
 export default function Game() {
   const { code } = useParams<{ code: string }>();
@@ -149,7 +149,6 @@ export default function Game() {
 
   const isMyTurn = gameState.currentTurnPlayerId === playerId;
   const currentTurnPlayer = gameState.players.find(p => p.id === gameState.currentTurnPlayerId)!;
-  const me = gameState.players.find(p => p.id === playerId);
 
   const colorMap: Record<string, string> = {
     RED: 'text-red-500',
