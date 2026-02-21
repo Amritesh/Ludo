@@ -1,14 +1,25 @@
 import Ably from 'ably';
 
-if (!process.env.ABLY_API_KEY) {
-  console.warn('ABLY_API_KEY is missing');
-}
+let ablyRest: Ably.Rest | null = null;
 
-export const ably = new Ably.Rest(process.env.ABLY_API_KEY || 'MISSING:KEY');
+export const getAblyClient = () => {
+  if (ablyRest) return ablyRest;
+
+  const key = process.env.ABLY_API_KEY;
+  if (!key || key === 'your_ably_key') {
+    console.warn('ABLY_API_KEY is missing or using placeholder');
+    // We still initialize it to avoid crashing, but it will fail on use
+    ablyRest = new Ably.Rest('MISSING:KEY');
+  } else {
+    ablyRest = new Ably.Rest(key);
+  }
+  return ablyRest;
+};
 
 export const publishGameEvent = async (gameCode: string, type: string, payload: any) => {
   try {
-    const channel = ably.channels.get(`game:${gameCode}`);
+    const client = getAblyClient();
+    const channel = client.channels.get(`game:${gameCode}`);
     await channel.publish(type, payload);
   } catch (err) {
     console.error(`Failed to publish event ${type} for game ${gameCode}:`, err);
@@ -16,5 +27,6 @@ export const publishGameEvent = async (gameCode: string, type: string, payload: 
 };
 
 export const getAblyToken = async (clientId: string) => {
-  return await ably.auth.createTokenRequest({ clientId });
+  const client = getAblyClient();
+  return await client.auth.createTokenRequest({ clientId });
 };

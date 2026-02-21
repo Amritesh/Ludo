@@ -43,6 +43,8 @@ export function getPiecePath(color: Color, startPos: number, diceValue: number):
       }
     } else if (currentPos < HOME_INDEX) {
       currentPos++;
+    } else {
+      return []; // Already at home, cannot move further
     }
 
     if (currentPos > HOME_INDEX) return []; // Overshot home

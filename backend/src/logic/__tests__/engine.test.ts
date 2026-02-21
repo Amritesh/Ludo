@@ -67,8 +67,8 @@ describe('Ludo Rules Engine', () => {
 
   it('should cut opponent piece and grant extra turn', () => {
     let state = createMockGameState();
-    state.players[0].pieces[0].position = 10;
-    state.players[1].pieces[0].position = 13; // Target
+    state.players[0].pieces[0].position = 11;
+    state.players[1].pieces[0].position = 14; // Target
     state.turn.phase = 'NEED_MOVE';
     state.turn.diceValue = 3;
 

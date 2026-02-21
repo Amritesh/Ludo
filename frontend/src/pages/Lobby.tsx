@@ -1,15 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import Ably from 'ably';
 import type { GameState } from '../types/game';
-import { Share2, UserPlus, Play, ChevronLeft, ShieldCheck, Cpu } from 'lucide-react';
+import { Share2, UserPlus, Play, ChevronLeft, ShieldCheck, Cpu, Edit2, Check } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 
 export default function Lobby() {
   const { code } = useParams<{ code: string }>();
   const [gameState, setGameState] = useState<GameState | null>(null);
+  const [playerId, setPlayerId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [newName, setNewName] = useState('');
+  const ablyRef = useRef<Ably.Realtime | null>(null);
   const navigate = useNavigate();
 
   const fetchState = async () => {
@@ -25,9 +30,29 @@ export default function Lobby() {
       
       localStorage.setItem(`session_${code}`, data.sessionId);
       setGameState(data.gameState);
+      setPlayerId(data.playerId);
+      setNewName(data.gameState.players.find((p: any) => p.id === data.playerId)?.name || '');
       
       if (data.gameState.status === 'RUNNING') {
         navigate(`/game/${code}`);
+        return;
+      }
+
+      if (!ablyRef.current && data.sessionId) {
+        const ably = new Ably.Realtime({ 
+          authUrl: `${API_BASE_URL}/api/realtime/token?sessionId=${data.sessionId}` 
+        });
+        ablyRef.current = ably;
+        const channel = ably.channels.get(`game:${code}`);
+        
+        channel.subscribe((msg: any) => {
+          if (msg.name === 'SNAPSHOT' || msg.name === 'GAME_STARTED') {
+            setGameState(msg.data);
+            if (msg.name === 'GAME_STARTED' || msg.data.status === 'RUNNING') {
+              navigate(`/game/${code}`);
+            }
+          }
+        });
       }
     } catch (err: any) {
       setError(err.message);
@@ -38,9 +63,28 @@ export default function Lobby() {
 
   useEffect(() => {
     fetchState();
-    const interval = setInterval(fetchState, 3000); // Polling for lobby
-    return () => clearInterval(interval);
+    return () => {
+      ablyRef.current?.close();
+      ablyRef.current = null;
+    };
   }, [code]);
+
+  const updateName = async () => {
+    if (!newName.trim()) return;
+    try {
+      const sessionId = localStorage.getItem(`session_${code}`);
+      const res = await fetch(`${API_BASE_URL}/api/game/update-name`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gameCode: code, sessionId, name: newName }),
+      });
+      const data = await res.json();
+      if (data.error) alert(data.error);
+      else setIsEditingName(false);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const addBot = async () => {
     try {
@@ -169,9 +213,32 @@ export default function Lobby() {
                         )}
                       </div>
                       <div>
-                        <div className="font-black text-slate-900">{player.name}</div>
+                        {isEditingName && player.id === playerId ? (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={newName}
+                              onChange={(e) => setNewName(e.target.value)}
+                              className="bg-slate-50 border border-slate-200 rounded px-2 py-1 font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 w-32"
+                              autoFocus
+                              onKeyDown={(e) => e.key === 'Enter' && updateName()}
+                            />
+                            <button onClick={updateName} className="p-1 hover:bg-slate-100 rounded text-green-600">
+                              <Check size={16} />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <div className="font-black text-slate-900">{player.name}</div>
+                            {player.id === playerId && (
+                              <button onClick={() => setIsEditingName(true)} className="p-1 hover:bg-slate-100 rounded text-slate-400">
+                                <Edit2 size={14} />
+                              </button>
+                            )}
+                          </div>
+                        )}
                         <div className="text-xs text-slate-400 font-bold uppercase tracking-tighter">
-                          {player.kind === 'BOT' ? 'Artificial Intelligence' : 'Human Player'}
+                          {player.kind === 'BOT' ? 'Artificial Intelligence' : player.id === playerId ? 'You (Player)' : 'Human Player'}
                         </div>
                       </div>
                     </div>
