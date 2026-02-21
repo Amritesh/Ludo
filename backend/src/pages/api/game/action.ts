@@ -30,17 +30,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (gameState.status !== 'RUNNING') {
-    res.status(400).json({ error: 'Game not running' });
+    res.status(400).json({ error: `Game not running (status: ${gameState.status})` });
     return;
   }
 
   if (gameState.currentTurnPlayerId !== session.playerId) {
-    res.status(400).json({ error: 'Not your turn' });
+    res.status(400).json({ error: `Not your turn (current: ${gameState.currentTurnPlayerId}, you: ${session.playerId})` });
     return;
   }
 
   if (gameState.turn.turnNonce !== turnNonce) {
-    res.status(400).json({ error: 'Invalid or stale turn nonce' });
+    res.status(400).json({ error: `Invalid or stale turn nonce (received: ${turnNonce}, expected: ${gameState.turn.turnNonce})` });
     return;
   }
 

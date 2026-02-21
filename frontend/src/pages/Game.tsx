@@ -39,6 +39,9 @@ export default function Game() {
         const ably = new Ably.Realtime({ 
           authUrl: `${API_BASE_URL}/api/realtime/token?sessionId=${data.sessionId}` 
         });
+        ably.connection.on('connected', () => console.log('Ably Connected'));
+        ably.connection.on('failed', (err) => console.error('Ably Connection Failed:', err));
+        
         ablyRef.current = ably;
         const channel = ably.channels.get(`game:${code}`);
         

@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { nanoid } from 'nanoid';
 import { getGameState, saveGameState, saveSession, getSession } from '../../../lib/redis';
+import { publishGameEvent } from '../../../lib/ably';
 import { GameState, Player, Color, SessionData } from '../../../types/game';
 
 const COLORS: Color[] = ['RED', 'GREEN', 'YELLOW', 'BLUE'];
@@ -33,6 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         player.connected = true;
         player.lastSeen = Date.now();
         await saveGameState(gameState);
+        await publishGameEvent(gameCode, 'SNAPSHOT', gameState);
         res.status(200).json({
           role: 'player',
           playerId: player.id,
@@ -65,6 +67,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     gameState.players.push(newPlayer);
     await saveGameState(gameState);
     await saveSession(sessionId, { gameCode, playerId, role: 'player', lastSeen: Date.now() });
+
+    await publishGameEvent(gameCode, 'SNAPSHOT', gameState);
 
     res.status(200).json({
       role: 'player',
