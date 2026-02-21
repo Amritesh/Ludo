@@ -1,14 +1,14 @@
 import { Redis } from '@upstash/redis';
 
-const isRedisConfigured = process.env.UPSTASH_REDIS_REST_URL && 
-                       process.env.UPSTASH_REDIS_REST_URL !== 'your_redis_url' &&
-                       process.env.UPSTASH_REDIS_REST_TOKEN &&
-                       process.env.UPSTASH_REDIS_REST_TOKEN !== 'your_redis_token';
+const isRedisConfigured = process.env.KV_REST_API_URL && 
+                       process.env.KV_REST_API_URL !== 'your_redis_url' &&
+                       process.env.KV_REST_API_TOKEN &&
+                       process.env.KV_REST_API_TOKEN !== 'your_redis_token';
 
 export const redis = isRedisConfigured 
   ? new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL!,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+      url: process.env.KV_REST_API_URL!,
+      token: process.env.KV_REST_API_TOKEN!,
     })
   : null;
 
