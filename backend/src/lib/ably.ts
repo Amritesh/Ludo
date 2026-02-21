@@ -7,12 +7,10 @@ export const getAblyClient = () => {
 
   const key = process.env.ABLY_API_KEY;
   if (!key || key === 'your_ably_key' || key.includes('MISSING')) {
-    console.error('ABLY_API_KEY is missing or invalid in environment variables');
-    // We still initialize it to avoid crashing, but it will fail on use
-    ablyRest = new Ably.Rest('MISSING:KEY');
-  } else {
-    ablyRest = new Ably.Rest(key);
+    throw new Error('ABLY_API_KEY is missing or invalid in environment variables');
   }
+
+  ablyRest = new Ably.Rest(key);
   return ablyRest;
 };
 
