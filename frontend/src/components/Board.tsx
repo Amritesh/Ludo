@@ -8,15 +8,15 @@ export default function Board() {
       let color = 'bg-white';
 
       // Yards Background
-      if (x < 6 && y < 6) color = 'bg-red-50/50';
-      if (x > 8 && y < 6) color = 'bg-green-50/50';
+      if (x < 6 && y < 6) color = 'bg-green-50/50';
+      if (x > 8 && y < 6) color = 'bg-yellow-50/50';
       if (x > 8 && y > 8) color = 'bg-blue-50/50';
-      if (x < 6 && y > 8) color = 'bg-yellow-50/50';
+      if (x < 6 && y > 8) color = 'bg-red-50/50';
 
       // Home Lanes
-      if (x === 7 && y > 0 && y < 7) color = 'bg-green-500';
+      if (x === 7 && y > 0 && y < 7) color = 'bg-yellow-500';
       if (x === 7 && y > 8 && y < 14) color = 'bg-red-500';
-      if (y === 7 && x > 0 && x < 7) color = 'bg-yellow-500';
+      if (y === 7 && x > 0 && x < 7) color = 'bg-green-500';
       if (y === 7 && x > 8 && x < 14) color = 'bg-blue-500';
 
       // Safe Squares & Start Squares
@@ -63,17 +63,8 @@ export default function Board() {
       </div>
       
       {/* Yards */}
-      {/* Red Yard */}
-      <div className="absolute top-0 left-0 w-[40%] h-[40%] bg-red-500 p-8">
-        <div className="w-full h-full bg-white rounded-3xl shadow-inner grid grid-cols-2 grid-rows-2 p-4 gap-4">
-          <div className="bg-red-500 rounded-full shadow-md"></div>
-          <div className="bg-red-500 rounded-full shadow-md"></div>
-          <div className="bg-red-500 rounded-full shadow-md"></div>
-          <div className="bg-red-500 rounded-full shadow-md"></div>
-        </div>
-      </div>
       {/* Green Yard */}
-      <div className="absolute top-0 right-0 w-[40%] h-[40%] bg-green-500 p-8">
+      <div className="absolute top-0 left-0 w-[40%] h-[40%] bg-green-500 p-8">
         <div className="w-full h-full bg-white rounded-3xl shadow-inner grid grid-cols-2 grid-rows-2 p-4 gap-4">
           <div className="bg-green-500 rounded-full shadow-md"></div>
           <div className="bg-green-500 rounded-full shadow-md"></div>
@@ -82,12 +73,21 @@ export default function Board() {
         </div>
       </div>
       {/* Yellow Yard */}
-      <div className="absolute bottom-0 left-0 w-[40%] h-[40%] bg-yellow-500 p-8">
+      <div className="absolute top-0 right-0 w-[40%] h-[40%] bg-yellow-500 p-8">
         <div className="w-full h-full bg-white rounded-3xl shadow-inner grid grid-cols-2 grid-rows-2 p-4 gap-4">
           <div className="bg-yellow-500 rounded-full shadow-md"></div>
           <div className="bg-yellow-500 rounded-full shadow-md"></div>
           <div className="bg-yellow-500 rounded-full shadow-md"></div>
           <div className="bg-yellow-500 rounded-full shadow-md"></div>
+        </div>
+      </div>
+      {/* Red Yard */}
+      <div className="absolute bottom-0 left-0 w-[40%] h-[40%] bg-red-500 p-8">
+        <div className="w-full h-full bg-white rounded-3xl shadow-inner grid grid-cols-2 grid-rows-2 p-4 gap-4">
+          <div className="bg-red-500 rounded-full shadow-md"></div>
+          <div className="bg-red-500 rounded-full shadow-md"></div>
+          <div className="bg-red-500 rounded-full shadow-md"></div>
+          <div className="bg-red-500 rounded-full shadow-md"></div>
         </div>
       </div>
       {/* Blue Yard */}
@@ -103,9 +103,9 @@ export default function Board() {
       {/* Center Home Triangle */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[20%] h-[20%] bg-white rounded-full shadow-xl flex items-center justify-center z-10 p-1 border-4 border-white ring-1 ring-slate-100">
         <div className="relative w-full h-full rounded-full overflow-hidden rotate-45">
-           <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-green-500"></div>
+           <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-yellow-500"></div>
            <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-blue-500"></div>
-           <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-yellow-500"></div>
+           <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-green-500"></div>
            <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-red-500"></div>
         </div>
         <div className="absolute inset-0 flex items-center justify-center">

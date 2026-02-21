@@ -6,15 +6,15 @@ export const HOME_INDEX = 58;
 
 export const START_INDICES: Record<Color, number> = {
   RED: 0,
-  YELLOW: 13,
-  GREEN: 26,
+  GREEN: 13,
+  YELLOW: 26,
   BLUE: 39,
 };
 
 export const HOME_LANE_ENTRY_INDICES: Record<Color, number> = {
   RED: 51,
-  YELLOW: 12,
-  GREEN: 25,
+  GREEN: 12,
+  YELLOW: 25,
   BLUE: 38,
 };
 

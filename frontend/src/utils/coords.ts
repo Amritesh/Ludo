@@ -43,9 +43,9 @@ export const getCellCoords = (index: number, color?: string): { x: number; y: nu
 
 export const getYardCoords = (color: string, pieceIndex: number): { x: number; y: number } => {
   const bases: Record<string, [number, number]> = {
-    RED: [1.5, 1.5],
-    GREEN: [10.5, 1.5],
-    YELLOW: [1.5, 10.5],
+    RED: [1.5, 10.5],
+    GREEN: [1.5, 1.5],
+    YELLOW: [10.5, 1.5],
     BLUE: [10.5, 10.5],
   };
   const [bx, by] = bases[color];
