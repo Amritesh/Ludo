@@ -66,7 +66,16 @@ export default function Lobby() {
 
   useEffect(() => {
     fetchState();
+    
+    // Fallback polling every 3 seconds if Ably is not working
+    const interval = setInterval(() => {
+      if (!ablyRef.current || ablyRef.current.connection.state !== 'connected') {
+        fetchState();
+      }
+    }, 3000);
+
     return () => {
+      clearInterval(interval);
       ablyRef.current?.close();
       ablyRef.current = null;
     };

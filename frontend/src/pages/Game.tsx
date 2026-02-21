@@ -74,7 +74,16 @@ export default function Game() {
 
   useEffect(() => {
     fetchState();
+
+    // Fallback polling if Ably fails
+    const interval = setInterval(() => {
+      if (!ablyRef.current || ablyRef.current.connection.state !== 'connected') {
+        refreshFullState();
+      }
+    }, 4000);
+
     return () => {
+      clearInterval(interval);
       ablyRef.current?.close();
     };
   }, [code]);
@@ -116,6 +125,7 @@ export default function Game() {
       });
       const data = await res.json();
       if (data.error) console.warn(data.error);
+      else if (data.gameState) setGameState(data.gameState);
     } catch (err) {
       console.error(err);
     } finally {
@@ -139,6 +149,7 @@ export default function Game() {
       });
       const data = await res.json();
       if (data.error) console.warn(data.error);
+      else if (data.gameState) setGameState(data.gameState);
     } catch (err) {
       console.error(err);
     }
