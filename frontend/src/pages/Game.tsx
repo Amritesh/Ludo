@@ -6,6 +6,7 @@ import type { GameState } from '../types/game';
 import Board from '../components/Board';
 import Piece from '../components/Piece';
 import { Dice6, Trophy, ChevronLeft, Users, Zap } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 export default function Game() {
   const { code } = useParams<{ code: string }>();
@@ -21,7 +22,7 @@ export default function Game() {
     setSessionId(sid);
     
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/game/join`, {
+      const res = await fetch(`${API_BASE_URL}/api/game/join`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ gameCode: code, sessionId: sid }),
@@ -36,7 +37,7 @@ export default function Game() {
       
       if (!ablyRef.current && data.sessionId) {
         const ably = new Ably.Realtime({ 
-          authUrl: `${import.meta.env.VITE_API_URL}/api/realtime/token?sessionId=${data.sessionId}` 
+          authUrl: `${API_BASE_URL}/api/realtime/token?sessionId=${data.sessionId}` 
         });
         ablyRef.current = ably;
         const channel = ably.channels.get(`game:${code}`);
@@ -60,7 +61,7 @@ export default function Game() {
 
   const refreshFullState = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/game/state?gameCode=${code}`);
+      const res = await fetch(`${API_BASE_URL}/api/game/state?gameCode=${code}`);
       const data = await res.json();
       setGameState(data);
     } catch (err) {
@@ -83,7 +84,7 @@ export default function Game() {
     if (currentPlayer && (currentPlayer.kind === 'BOT' || !currentPlayer.connected)) {
       const timer = setTimeout(async () => {
         try {
-          await fetch(`${import.meta.env.VITE_API_URL}/api/game/ai-step`, {
+          await fetch(`${API_BASE_URL}/api/game/ai-step`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ gameCode: code }),
@@ -100,7 +101,7 @@ export default function Game() {
     if (rolling || !gameState) return;
     setRolling(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/game/action`, {
+      const res = await fetch(`${API_BASE_URL}/api/game/action`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -122,7 +123,7 @@ export default function Game() {
   const movePiece = async (pieceIndex: number) => {
     if (!gameState) return;
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/game/action`, {
+      const res = await fetch(`${API_BASE_URL}/api/game/action`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Play, Trophy, Users } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 export default function Home() {
   const [code, setCode] = useState('');
@@ -11,7 +12,7 @@ export default function Home() {
   const createGame = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/game/create`, {
+      const res = await fetch(`${API_BASE_URL}/api/game/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ seats: 4, allowBots: true }),

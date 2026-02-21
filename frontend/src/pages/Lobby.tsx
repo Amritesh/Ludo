@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { GameState } from '../types/game';
 import { Share2, UserPlus, Play, ChevronLeft, ShieldCheck, Cpu } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 export default function Lobby() {
   const { code } = useParams<{ code: string }>();
@@ -14,7 +15,7 @@ export default function Lobby() {
   const fetchState = async () => {
     try {
       const sessionId = localStorage.getItem(`session_${code}`);
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/game/join`, {
+      const res = await fetch(`${API_BASE_URL}/api/game/join`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ gameCode: code, sessionId }),
@@ -44,7 +45,7 @@ export default function Lobby() {
   const addBot = async () => {
     try {
       const sessionId = localStorage.getItem(`session_${code}`);
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/game/add-bot`, {
+      const res = await fetch(`${API_BASE_URL}/api/game/add-bot`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ gameCode: code, sessionId }),
@@ -60,7 +61,7 @@ export default function Lobby() {
   const startGame = async () => {
     try {
       const sessionId = localStorage.getItem(`session_${code}`);
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/game/start`, {
+      const res = await fetch(`${API_BASE_URL}/api/game/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ gameCode: code, sessionId }),
