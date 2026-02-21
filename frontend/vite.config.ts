@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-  base: './', // Use relative path for GH Pages compatibility
+  base: '/Ludo/', // Set base to repository name for GH Pages compatibility
   server: {
     proxy: {
       '/api': {
