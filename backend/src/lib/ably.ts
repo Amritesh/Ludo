@@ -7,7 +7,7 @@ export const getAblyClient = () => {
 
   const key = process.env.ABLY_API_KEY;
   if (!key || key === 'your_ably_key' || key.includes('MISSING')) {
-    console.error('ABLY_API_KEY is missing. Current env:', process.env.NODE_ENV);
+    console.error('ABLY_API_KEY is missing. Available env vars:', Object.keys(process.env));
     throw new Error('ABLY_API_KEY is missing in environment variables. Please set it in Vercel dashboard.');
   }
 
