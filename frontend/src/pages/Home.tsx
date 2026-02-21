@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Play, Trophy, Users } from 'lucide-react';
+import { Play } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 
 export default function Home() {
@@ -88,26 +88,7 @@ export default function Home() {
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white p-4 rounded-2xl border border-slate-100 flex items-center gap-3">
-             <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500">
-               <Users size={20} />
-             </div>
-             <div>
-               <div className="text-xs text-slate-400 font-bold uppercase tracking-tighter">Active</div>
-               <div className="font-bold text-slate-900">2.4k Players</div>
-             </div>
-          </div>
-          <div className="bg-white p-4 rounded-2xl border border-slate-100 flex items-center gap-3">
-             <div className="w-10 h-10 rounded-xl bg-yellow-50 flex items-center justify-center text-yellow-500">
-               <Trophy size={20} />
-             </div>
-             <div>
-               <div className="text-xs text-slate-400 font-bold uppercase tracking-tighter">Today</div>
-               <div className="font-bold text-slate-900">482 Winners</div>
-             </div>
-          </div>
-        </div>
+
       </div>
 
       <footer className="mt-12 text-slate-400 text-sm font-medium">
