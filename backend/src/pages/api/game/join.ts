@@ -6,12 +6,23 @@ import { GameState, Player, Color, SessionData } from '../../../types/game';
 const COLORS: Color[] = ['RED', 'GREEN', 'YELLOW', 'BLUE'];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') return res.status(405).end();
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  if (req.method !== 'POST') {
+    res.status(405).end();
+    return;
+  }
 
   const { gameCode, sessionId: existingSessionId } = req.body;
   const gameState = (await getGameState(gameCode)) as GameState | null;
 
-  if (!gameState) return res.status(404).json({ error: 'Game not found' });
+  if (!gameState) {
+    res.status(404).json({ error: 'Game not found' });
+    return;
+  }
 
   // Reconnection logic
   if (existingSessionId) {
@@ -22,12 +33,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         player.connected = true;
         player.lastSeen = Date.now();
         await saveGameState(gameState);
-        return res.status(200).json({
+        res.status(200).json({
           role: 'player',
           playerId: player.id,
           sessionId: existingSessionId,
           gameState,
         });
+        return;
       }
     }
   }
@@ -54,12 +66,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await saveGameState(gameState);
     await saveSession(sessionId, { gameCode, playerId, role: 'player', lastSeen: Date.now() });
 
-    return res.status(200).json({
+    res.status(200).json({
       role: 'player',
       playerId,
       sessionId,
       gameState,
     });
+    return;
   }
 
   // Join as viewer

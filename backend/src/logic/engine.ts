@@ -6,15 +6,15 @@ export const HOME_INDEX = 58;
 
 export const START_INDICES: Record<Color, number> = {
   RED: 0,
-  GREEN: 13,
-  YELLOW: 26,
+  YELLOW: 13,
+  GREEN: 26,
   BLUE: 39,
 };
 
 export const HOME_LANE_ENTRY_INDICES: Record<Color, number> = {
   RED: 51,
-  GREEN: 12,
-  YELLOW: 25,
+  YELLOW: 12,
+  GREEN: 25,
   BLUE: 38,
 };
 
@@ -28,6 +28,8 @@ export function getPiecePath(color: Color, startPos: number, diceValue: number):
     if (currentPos === -1) {
       if (diceValue === 6) {
         currentPos = START_INDICES[color];
+        path.push(currentPos);
+        return path; // Piece stops at start square when coming out of yard
       } else {
         return []; // Cannot move from yard without a 6
       }

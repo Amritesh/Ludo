@@ -23,7 +23,12 @@ export const getGameState = async (code: string) => {
 
 export const saveGameState = async (state: any) => {
   if (!redis) throw new Error('Redis not configured');
-  await redis.set(`game:${state.code}`, state);
+  
+  // Game is kept for 2 days if unplayed
+  // If finished, we keep it for 1 hour to allow players to see results
+  const ttl = state.status === 'FINISHED' ? 3600 : 172800;
+  
+  await redis.set(`game:${state.code}`, state, { ex: ttl });
 };
 
 export const getSession = async (sessionId: string) => {
@@ -33,5 +38,6 @@ export const getSession = async (sessionId: string) => {
 
 export const saveSession = async (sessionId: string, sessionData: any) => {
   if (!redis) throw new Error('Redis not configured');
-  await redis.set(`session:${sessionId}`, sessionData);
+  // Sessions also expire after 2 days
+  await redis.set(`session:${sessionId}`, sessionData, { ex: 172800 });
 };

@@ -5,28 +5,43 @@ import { rollDice, applyMove, isValidMove } from '../../../logic/engine';
 import { GameState, SessionData } from '../../../types/game';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') return res.status(405).end();
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  if (req.method !== 'POST') {
+    res.status(405).end();
+    return;
+  }
 
   const { gameCode, sessionId, action, payload, turnNonce } = req.body;
   
   const session = (await getSession(sessionId)) as SessionData | null;
   if (!session || session.gameCode !== gameCode || session.role !== 'player') {
-    return res.status(403).json({ error: 'Unauthorized' });
+    res.status(403).json({ error: 'Unauthorized' });
+    return;
   }
 
   const gameState = (await getGameState(gameCode)) as GameState | null;
-  if (!gameState) return res.status(404).json({ error: 'Game not found' });
+  if (!gameState) {
+    res.status(404).json({ error: 'Game not found' });
+    return;
+  }
 
   if (gameState.status !== 'RUNNING') {
-    return res.status(400).json({ error: 'Game not running' });
+    res.status(400).json({ error: 'Game not running' });
+    return;
   }
 
   if (gameState.currentTurnPlayerId !== session.playerId) {
-    return res.status(400).json({ error: 'Not your turn' });
+    res.status(400).json({ error: 'Not your turn' });
+    return;
   }
 
   if (gameState.turn.turnNonce !== turnNonce) {
-    return res.status(400).json({ error: 'Invalid or stale turn nonce' });
+    res.status(400).json({ error: 'Invalid or stale turn nonce' });
+    return;
   }
 
   let newState: GameState;
@@ -39,12 +54,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } else if (action === 'MOVE') {
       const { pieceIndex } = payload;
       if (!isValidMove(gameState, session.playerId!, pieceIndex, gameState.turn.diceValue!)) {
-        return res.status(400).json({ error: 'Invalid move' });
+        res.status(400).json({ error: 'Invalid move' });
+        return;
       }
       newState = applyMove(gameState, session.playerId!, pieceIndex, gameState.turn.diceValue!);
       await publishGameEvent(gameCode, 'PIECE_MOVED', newState.lastEvent?.payload);
     } else {
-      return res.status(400).json({ error: 'Unknown action' });
+      res.status(400).json({ error: 'Unknown action' });
+      return;
     }
 
     await saveGameState(newState);

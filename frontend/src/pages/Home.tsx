@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Play, Trophy, Users } from 'lucide-react';
 
 export default function Home() {
   const [code, setCode] = useState('');
@@ -31,44 +33,85 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4">
-      <h1 className="text-5xl font-bold text-red-600 mb-8 drop-shadow-md">LUDO</h1>
-      
-      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
-        <button
-          onClick={createGame}
-          disabled={loading}
-          className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-4 rounded-xl mb-6 transition-all transform hover:scale-105 active:scale-95 shadow-lg disabled:opacity-50"
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+      <motion.div 
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="text-center mb-12"
+      >
+        <h1 className="text-7xl font-black text-slate-900 mb-2 tracking-tighter">
+          LUDO<span className="text-red-500">.</span>
+        </h1>
+        <p className="text-slate-500 font-medium">Classic board game, reimagined.</p>
+      </motion.div>
+
+      <div className="w-full max-w-md space-y-4">
+        <motion.div 
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white p-8 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100"
         >
-          {loading ? 'Creating...' : 'CREATE NEW GAME'}
-        </button>
-
-        <div className="relative flex items-center mb-6">
-          <div className="flex-grow border-t border-slate-200"></div>
-          <span className="flex-shrink mx-4 text-slate-400 font-medium">OR</span>
-          <div className="flex-grow border-t border-slate-200"></div>
-        </div>
-
-        <div className="flex flex-col gap-4">
-          <input
-            type="text"
-            placeholder="ENTER 6-DIGIT CODE"
-            value={code}
-            onChange={(e) => setCode(e.target.value.toUpperCase())}
-            maxLength={6}
-            className="w-full text-center text-2xl font-mono tracking-widest border-2 border-slate-200 rounded-xl py-3 focus:outline-none focus:border-red-400 transition-colors text-slate-900"
-          />
           <button
-            onClick={joinGame}
-            disabled={code.length !== 6}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 rounded-xl transition-all transform hover:scale-105 active:scale-95 shadow-lg disabled:opacity-50 disabled:scale-100"
+            onClick={createGame}
+            disabled={loading}
+            className="w-full group relative bg-slate-900 hover:bg-slate-800 text-white font-bold py-5 rounded-2xl transition-all flex items-center justify-center gap-3 overflow-hidden disabled:opacity-50"
           >
-            JOIN GAME
+            <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 opacity-0 group-hover:opacity-10 transition-opacity" />
+            <Play size={24} fill="currentColor" />
+            <span>{loading ? 'CREATING...' : 'CREATE NEW GAME'}</span>
           </button>
+
+          <div className="relative flex items-center my-8">
+            <div className="flex-grow border-t border-slate-100"></div>
+            <span className="flex-shrink mx-4 text-slate-400 text-xs font-bold uppercase tracking-widest">or join existing</span>
+            <div className="flex-grow border-t border-slate-100"></div>
+          </div>
+
+          <div className="space-y-3">
+            <input
+              type="text"
+              placeholder="ENTER GAME CODE"
+              value={code}
+              onChange={(e) => setCode(e.target.value.toUpperCase())}
+              maxLength={6}
+              className="w-full text-center text-3xl font-black tracking-[0.2em] border-2 border-slate-100 rounded-2xl py-4 focus:outline-none focus:border-red-500/20 focus:ring-4 focus:ring-red-500/5 transition-all text-slate-900 placeholder:text-slate-200"
+            />
+            <button
+              onClick={joinGame}
+              disabled={code.length !== 6}
+              className="w-full bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold py-5 rounded-2xl transition-all disabled:opacity-30 disabled:grayscale"
+            >
+              JOIN GAME
+            </button>
+          </div>
+        </motion.div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white p-4 rounded-2xl border border-slate-100 flex items-center gap-3">
+             <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500">
+               <Users size={20} />
+             </div>
+             <div>
+               <div className="text-xs text-slate-400 font-bold uppercase tracking-tighter">Active</div>
+               <div className="font-bold text-slate-900">2.4k Players</div>
+             </div>
+          </div>
+          <div className="bg-white p-4 rounded-2xl border border-slate-100 flex items-center gap-3">
+             <div className="w-10 h-10 rounded-xl bg-yellow-50 flex items-center justify-center text-yellow-500">
+               <Trophy size={20} />
+             </div>
+             <div>
+               <div className="text-xs text-slate-400 font-bold uppercase tracking-tighter">Today</div>
+               <div className="font-bold text-slate-900">482 Winners</div>
+             </div>
+          </div>
         </div>
       </div>
-      
-      <p className="mt-8 text-slate-400 text-sm">Play Ludo instantly with friends.</p>
+
+      <footer className="mt-12 text-slate-400 text-sm font-medium">
+        v1.0.0 &bull; Built with ❤️ for fun
+      </footer>
     </div>
   );
 }

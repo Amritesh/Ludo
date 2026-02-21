@@ -6,13 +6,22 @@ import { getBestMove } from '../../../logic/ai';
 import { GameState } from '../../../types/game';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') return res.status(405).end();
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  if (req.method !== 'POST') {
+    res.status(405).end();
+    return;
+  }
 
   const { gameCode } = req.body;
   const gameState = (await getGameState(gameCode)) as GameState | null;
 
   if (!gameState || gameState.status !== 'RUNNING') {
-    return res.status(400).json({ error: 'Invalid game state' });
+    res.status(400).json({ error: 'Invalid game state' });
+    return;
   }
 
   const currentPlayer = gameState.players.find(p => p.id === gameState.currentTurnPlayerId)!;
@@ -20,7 +29,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const isDisconnected = !currentPlayer.connected && (Date.now() - currentPlayer.lastSeen > 10000);
 
   if (!isBot && !isDisconnected) {
-    return res.status(400).json({ error: 'Not a BOT turn and player is connected' });
+    res.status(400).json({ error: 'Not a BOT turn and player is connected' });
+    return;
   }
 
   let newState = gameState;
@@ -38,7 +48,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       } else {
         // This shouldn't happen if phase is NEED_MOVE, but just in case
         // Logic in rollDice already handles "no moves possible"
-        return res.status(500).json({ error: 'AI found no moves' });
+        res.status(500).json({ error: 'AI found no moves' });
+        return;
       }
     }
 
