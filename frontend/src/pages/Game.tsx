@@ -7,6 +7,7 @@ import Board from '../components/Board';
 import Piece from '../components/Piece';
 import { Dice6, Trophy, ChevronLeft, Users, Zap } from 'lucide-react';
 import { API_BASE_URL } from '../config';
+import { playSound } from '../utils/sounds';
 
 export default function Game() {
   const { code } = useParams<{ code: string }>();
@@ -48,11 +49,21 @@ export default function Game() {
         channel.subscribe((msg: any) => {
           if (msg.name === 'SNAPSHOT' || msg.name === 'GAME_STARTED') {
             setGameState(msg.data);
+          } else if (msg.name === 'GAME_FINISHED') {
+             playSound('WIN');
+             setGameState(prev => prev ? { ...prev, status: 'FINISHED', winnerId: msg.data.winnerId } : null);
           } else if (msg.name === 'TURN_CHANGED') {
             setGameState(prev => prev ? { ...prev, currentTurnPlayerId: msg.data.playerId, turn: { ...prev.turn, ...msg.data } } : null);
           } else if (msg.name === 'DICE_ROLL') {
+             playSound('ROLL');
              setGameState(prev => prev ? { ...prev, turn: { ...prev.turn, diceValue: msg.data.value, phase: 'NEED_MOVE' } } : null);
           } else if (msg.name === 'PIECE_MOVED') {
+             const event = msg.data.lastEvent;
+             if (event?.type === 'PIECE_MOVED') {
+               if (event.payload.cut) playSound('CUT');
+               else if (event.payload.to === 58) playSound('HOME');
+               else playSound('MOVE');
+             }
              refreshFullState();
           }
         });
@@ -155,6 +166,33 @@ export default function Game() {
     }
   };
 
+  const isMyTurn = gameState?.currentTurnPlayerId === playerId;
+
+  const canMovePiece = (player: any, pieceIndex: number, diceValue: number) => {
+    const piece = player.pieces[pieceIndex];
+    if (piece.position === 58) return false;
+    if (piece.position === -1) return diceValue === 6;
+    if (piece.position >= 52) {
+        return piece.position + diceValue <= 58;
+    }
+    return true; 
+  };
+
+  useEffect(() => {
+    if (isMyTurn && gameState?.turn.phase === 'NEED_MOVE' && gameState.turn.diceValue) {
+      const myPlayer = gameState.players.find(p => p.id === playerId);
+      if (myPlayer) {
+        const moveablePieces = myPlayer.pieces
+          .map((_, idx) => idx)
+          .filter(idx => canMovePiece(myPlayer, idx, gameState.turn.diceValue!));
+        
+        if (moveablePieces.length === 1) {
+          movePiece(moveablePieces[0]);
+        }
+      }
+    }
+  }, [gameState?.turn.phase, gameState?.turn.diceValue, isMyTurn]);
+
   if (!gameState) return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center">
       <div className="w-12 h-12 border-4 border-slate-200 border-t-red-500 rounded-full animate-spin mb-4" />
@@ -162,7 +200,6 @@ export default function Game() {
     </div>
   );
 
-  const isMyTurn = gameState.currentTurnPlayerId === playerId;
   const currentTurnPlayer = gameState.players.find(p => p.id === gameState.currentTurnPlayerId)!;
 
   const colorMap: Record<string, string> = {
@@ -238,7 +275,14 @@ export default function Game() {
                 color={player.color}
                 index={idx}
                 position={piece.position}
-                canMove={isMyTurn && gameState.turn.phase === 'NEED_MOVE' && gameState.turn.diceValue !== undefined}
+                isTurn={gameState.currentTurnPlayerId === player.id}
+                canMove={
+                  gameState.currentTurnPlayerId === player.id && 
+                  player.id === playerId &&
+                  gameState.turn.phase === 'NEED_MOVE' && 
+                  gameState.turn.diceValue !== undefined &&
+                  canMovePiece(player, idx, gameState.turn.diceValue)
+                }
                 onClick={() => movePiece(idx)}
               />
             ))

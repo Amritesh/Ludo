@@ -4,7 +4,7 @@ import { getGameState, saveGameState, saveSession, getSession } from '../../../l
 import { publishGameEvent } from '../../../lib/ably';
 import { GameState, Player, Color, SessionData } from '../../../types/game';
 
-const COLORS: Color[] = ['RED', 'GREEN', 'YELLOW', 'BLUE'];
+const COLORS: Color[] = ['RED', 'YELLOW', 'GREEN', 'BLUE'];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'OPTIONS') {

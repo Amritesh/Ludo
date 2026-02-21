@@ -64,39 +64,39 @@ export default function Board() {
       
       {/* Yards */}
       {/* Green Yard */}
-      <div className="absolute top-0 left-0 w-[40%] h-[40%] bg-green-500 p-8">
-        <div className="w-full h-full bg-white rounded-3xl shadow-inner grid grid-cols-2 grid-rows-2 p-4 gap-4">
-          <div className="bg-green-500 rounded-full shadow-md"></div>
-          <div className="bg-green-500 rounded-full shadow-md"></div>
-          <div className="bg-green-500 rounded-full shadow-md"></div>
-          <div className="bg-green-500 rounded-full shadow-md"></div>
+      <div className="absolute top-0 left-0 w-[40%] h-[40%] bg-green-500 p-[6.66%]">
+        <div className="w-full h-full bg-white rounded-3xl shadow-inner relative">
+          <div className="absolute top-[16.66%] left-[16.66%] w-[16.66%] h-[16.66%] bg-green-500 rounded-full shadow-md"></div>
+          <div className="absolute top-[16.66%] right-[16.66%] w-[16.66%] h-[16.66%] bg-green-500 rounded-full shadow-md"></div>
+          <div className="absolute bottom-[16.66%] left-[16.66%] w-[16.66%] h-[16.66%] bg-green-500 rounded-full shadow-md"></div>
+          <div className="absolute bottom-[16.66%] right-[16.66%] w-[16.66%] h-[16.66%] bg-green-500 rounded-full shadow-md"></div>
         </div>
       </div>
       {/* Yellow Yard */}
-      <div className="absolute top-0 right-0 w-[40%] h-[40%] bg-yellow-500 p-8">
-        <div className="w-full h-full bg-white rounded-3xl shadow-inner grid grid-cols-2 grid-rows-2 p-4 gap-4">
-          <div className="bg-yellow-500 rounded-full shadow-md"></div>
-          <div className="bg-yellow-500 rounded-full shadow-md"></div>
-          <div className="bg-yellow-500 rounded-full shadow-md"></div>
-          <div className="bg-yellow-500 rounded-full shadow-md"></div>
+      <div className="absolute top-0 right-0 w-[40%] h-[40%] bg-yellow-500 p-[6.66%]">
+        <div className="w-full h-full bg-white rounded-3xl shadow-inner relative">
+          <div className="absolute top-[16.66%] left-[16.66%] w-[16.66%] h-[16.66%] bg-yellow-500 rounded-full shadow-md"></div>
+          <div className="absolute top-[16.66%] right-[16.66%] w-[16.66%] h-[16.66%] bg-yellow-500 rounded-full shadow-md"></div>
+          <div className="absolute bottom-[16.66%] left-[16.66%] w-[16.66%] h-[16.66%] bg-yellow-500 rounded-full shadow-md"></div>
+          <div className="absolute bottom-[16.66%] right-[16.66%] w-[16.66%] h-[16.66%] bg-yellow-500 rounded-full shadow-md"></div>
         </div>
       </div>
       {/* Red Yard */}
-      <div className="absolute bottom-0 left-0 w-[40%] h-[40%] bg-red-500 p-8">
-        <div className="w-full h-full bg-white rounded-3xl shadow-inner grid grid-cols-2 grid-rows-2 p-4 gap-4">
-          <div className="bg-red-500 rounded-full shadow-md"></div>
-          <div className="bg-red-500 rounded-full shadow-md"></div>
-          <div className="bg-red-500 rounded-full shadow-md"></div>
-          <div className="bg-red-500 rounded-full shadow-md"></div>
+      <div className="absolute bottom-0 left-0 w-[40%] h-[40%] bg-red-500 p-[6.66%]">
+        <div className="w-full h-full bg-white rounded-3xl shadow-inner relative">
+          <div className="absolute top-[16.66%] left-[16.66%] w-[16.66%] h-[16.66%] bg-red-500 rounded-full shadow-md"></div>
+          <div className="absolute top-[16.66%] right-[16.66%] w-[16.66%] h-[16.66%] bg-red-500 rounded-full shadow-md"></div>
+          <div className="absolute bottom-[16.66%] left-[16.66%] w-[16.66%] h-[16.66%] bg-red-500 rounded-full shadow-md"></div>
+          <div className="absolute bottom-[16.66%] right-[16.66%] w-[16.66%] h-[16.66%] bg-red-500 rounded-full shadow-md"></div>
         </div>
       </div>
       {/* Blue Yard */}
-      <div className="absolute bottom-0 right-0 w-[40%] h-[40%] bg-blue-500 p-8">
-        <div className="w-full h-full bg-white rounded-3xl shadow-inner grid grid-cols-2 grid-rows-2 p-4 gap-4">
-          <div className="bg-blue-500 rounded-full shadow-md"></div>
-          <div className="bg-blue-500 rounded-full shadow-md"></div>
-          <div className="bg-blue-500 rounded-full shadow-md"></div>
-          <div className="bg-blue-500 rounded-full shadow-md"></div>
+      <div className="absolute bottom-0 right-0 w-[40%] h-[40%] bg-blue-500 p-[6.66%]">
+        <div className="w-full h-full bg-white rounded-3xl shadow-inner relative">
+          <div className="absolute top-[16.66%] left-[16.66%] w-[16.66%] h-[16.66%] bg-blue-500 rounded-full shadow-md"></div>
+          <div className="absolute top-[16.66%] right-[16.66%] w-[16.66%] h-[16.66%] bg-blue-500 rounded-full shadow-md"></div>
+          <div className="absolute bottom-[16.66%] left-[16.66%] w-[16.66%] h-[16.66%] bg-blue-500 rounded-full shadow-md"></div>
+          <div className="absolute bottom-[16.66%] right-[16.66%] w-[16.66%] h-[16.66%] bg-blue-500 rounded-full shadow-md"></div>
         </div>
       </div>
 

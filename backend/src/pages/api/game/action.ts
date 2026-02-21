@@ -58,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return;
       }
       newState = applyMove(gameState, session.playerId!, pieceIndex, gameState.turn.diceValue!);
-      await publishGameEvent(gameCode, 'PIECE_MOVED', newState.lastEvent?.payload);
+      await publishGameEvent(gameCode, 'PIECE_MOVED', newState.lastEvent);
     } else {
       res.status(400).json({ error: 'Unknown action' });
       return;
