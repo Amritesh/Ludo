@@ -1,4 +1,4 @@
-import { Zap, ArrowUpLeft, ArrowUpRight, ArrowDownLeft, ArrowDownRight, Home } from 'lucide-react';
+import { Zap, ArrowUpLeft, ArrowUpRight, ArrowDownLeft, ArrowDownRight } from 'lucide-react';
 
 const BOARD_SIZE = 15;
 
