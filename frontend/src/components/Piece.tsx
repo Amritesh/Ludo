@@ -64,7 +64,7 @@ export default function Piece({
     >
       <div className={`w-full h-full rounded-full border-2 shadow-lg relative flex items-center justify-center transition-all ${colorClasses[color]} 
         ${isHeavyPair ? 'border-slate-900 border-4' : 'border-white'}
-        ${canMove ? 'ring-4 ring-white ring-opacity-50' : ''} 
+        ${canMove ? 'ring-4 ring-yellow-400 ring-opacity-100 shadow-[0_0_15px_rgba(250,204,21,0.8)]' : ''} 
         ${isTurn && !canMove ? 'opacity-90 shadow-sm' : ''}
       `}>
         
@@ -94,9 +94,9 @@ export default function Piece({
         
         {canMove && (
           <motion.div
-            animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+            animate={{ scale: [1, 1.4, 1], opacity: [0.6, 1, 0.6] }}
             transition={{ repeat: Infinity, duration: 1.5 }}
-            className="absolute -inset-1 rounded-full border-2 border-white"
+            className="absolute -inset-2 rounded-full border-2 border-yellow-400"
           />
         )}
       </div>

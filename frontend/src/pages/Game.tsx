@@ -188,6 +188,26 @@ export default function Game() {
 
   const isMyTurn = gameState?.currentTurnPlayerId === playerId;
 
+  const canPieceMove = (player: any, pieceIdx: number) => {
+    if (!gameState || !isMyTurn || gameState.turn.phase !== 'NEED_MOVE' || gameState.turn.bank.length === 0) return false;
+    
+    const piece = player.pieces[pieceIdx];
+    if (piece.position === 58) return false;
+
+    return gameState.turn.bank.some(die => {
+      // Yard: needs 6
+      if (piece.position === -1) return die.value === 6;
+      
+      // Home stretch: needs exact or less
+      if (piece.position >= 52) return piece.position + die.value <= 58;
+      
+      // Common track: most moves are possible unless blocked by a heavy pair
+      // For now, let's assume it can move if it's not finished
+      // We could add more complex logic here if needed
+      return true;
+    });
+  };
+
   const colorMap: Record<string, string> = {
     RED: 'text-red-500',
     GREEN: 'text-green-500',
@@ -343,12 +363,7 @@ export default function Game() {
                   stackSize={occupants.length}
                   stackIndex={stackIndex >= 0 ? stackIndex : 0}
                   isTurn={gameState.currentTurnPlayerId === player.id}
-                  canMove={
-                    gameState.currentTurnPlayerId === player.id && 
-                    player.id === playerId &&
-                    gameState.turn.phase === 'NEED_MOVE' && 
-                    gameState.turn.bank.length > 0
-                  }
+                  canMove={canPieceMove(player, idx)}
                   onClick={() => movePiece(idx)}
                 />
               );

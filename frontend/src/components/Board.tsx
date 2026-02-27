@@ -1,4 +1,4 @@
-import { Zap } from 'lucide-react';
+import { Zap, ArrowUpLeft, ArrowUpRight, ArrowDownLeft, ArrowDownRight, Home } from 'lucide-react';
 
 const BOARD_SIZE = 15;
 
@@ -33,14 +33,23 @@ export default function Board() {
       const isSafe = safeSquares.some(([sx, sy]) => sx === x && sy === y);
 
       // Arrow Tails
-      const isOuterTail = (x === 6 && y === 9) || (x === 5 && y === 6) || (x === 8 && y === 5) || (x === 9 && y === 8);
-      const isInnerTail = (x === 0 && y === 7) || (x === 7 && y === 0) || (x === 14 && y === 7) || (x === 7 && y === 14);
+      const isOuterTailUL = (x === 6 && y === 9);
+      const isOuterTailUR = (x === 5 && y === 6);
+      const isOuterTailDR = (x === 8 && y === 5);
+      const isOuterTailDL = (x === 9 && y === 8);
+      const isOuterTail = isOuterTailUL || isOuterTailUR || isOuterTailDR || isOuterTailDL;
+
+      const isInnerTailLeft = (x === 0 && y === 7);
+      const isInnerTailTop = (x === 7 && y === 0);
+      const isInnerTailRight = (x === 14 && y === 7);
+      const isInnerTailBottom = (x === 7 && y === 14);
+      const isInnerTail = isInnerTailLeft || isInnerTailTop || isInnerTailRight || isInnerTailBottom;
       
       if (isSafe) {
         color = 'bg-slate-100';
       }
-      if (isOuterTail) color = 'bg-orange-50';
-      if (isInnerTail) color = 'bg-purple-50';
+      if (isOuterTail) color = 'bg-orange-100/50';
+      if (isInnerTail) color = 'bg-purple-100/50';
 
       // Center
       if (x >= 6 && x <= 8 && y >= 6 && y <= 8) {
@@ -50,7 +59,7 @@ export default function Board() {
       cells.push(
         <div
           key={`${x}-${y}`}
-          className={`relative border-[0.5px] border-slate-100 ${color} flex items-center justify-center`}
+          className={`relative border-[0.5px] border-slate-100 ${color} flex items-center justify-center transition-colors`}
           style={{ gridColumnStart: x + 1, gridRowStart: y + 1 }}
         >
           {isStart && (
@@ -59,11 +68,43 @@ export default function Board() {
           {isSafe && !isStart && (
             <div className="w-1.5 h-1.5 rounded-full bg-slate-200" />
           )}
-          {isOuterTail && (
-            <Zap size={10} className="text-orange-300 opacity-50" fill="currentColor" />
+          
+          {isOuterTailUL && (
+            <ArrowUpLeft size={14} className="text-orange-500 animate-pulse" strokeWidth={3} />
           )}
-          {isInnerTail && (
-            <Zap size={10} className="text-purple-300 opacity-50" fill="currentColor" />
+          {isOuterTailUR && (
+            <ArrowUpRight size={14} className="text-orange-500 animate-pulse" strokeWidth={3} />
+          )}
+          {isOuterTailDR && (
+            <ArrowDownRight size={14} className="text-orange-500 animate-pulse" strokeWidth={3} />
+          )}
+          {isOuterTailDL && (
+            <ArrowDownLeft size={14} className="text-orange-500 animate-pulse" strokeWidth={3} />
+          )}
+
+          {isInnerTailLeft && (
+            <div className="relative flex items-center justify-center">
+                <Zap size={14} className="text-purple-600 animate-bounce" fill="currentColor" />
+                <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full border border-white" />
+            </div>
+          )}
+          {isInnerTailTop && (
+            <div className="relative flex items-center justify-center">
+                <Zap size={14} className="text-purple-600 animate-bounce" fill="currentColor" />
+                <div className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-500 rounded-full border border-white" />
+            </div>
+          )}
+          {isInnerTailRight && (
+            <div className="relative flex items-center justify-center">
+                <Zap size={14} className="text-purple-600 animate-bounce" fill="currentColor" />
+                <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full border border-white" />
+            </div>
+          )}
+          {isInnerTailBottom && (
+            <div className="relative flex items-center justify-center">
+                <Zap size={14} className="text-purple-600 animate-bounce" fill="currentColor" />
+                <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border border-white" />
+            </div>
           )}
         </div>
       );
