@@ -27,13 +27,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const currentPlayer = gameState.players.find(p => p.id === gameState.currentTurnPlayerId)!;
   const isBot = currentPlayer.kind === 'BOT';
   const isDisconnected = !currentPlayer.connected && (Date.now() - currentPlayer.lastSeen > 10000);
+  const isTimedOut = (Date.now() - gameState.updatedAt > 30000);
 
-  if (!isBot && !isDisconnected) {
-    res.status(400).json({ error: 'Not a BOT turn and player is connected' });
+  if (!isBot && !isDisconnected && !isTimedOut) {
+    res.status(400).json({ error: 'Not a BOT turn, player is connected, and not timed out' });
     return;
   }
 
+  // If human timed out or is disconnected, AI will take over for this step
   let state = gameState;
+  const actingPlayerId = currentPlayer.id;
 
   try {
     if (state.turn.phase === 'NEED_ROLL') {
@@ -43,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } else if (state.turn.phase === 'NEED_MOVE') {
       const bestAction = getBestTacticalMove(state, currentPlayer.id);
       if (bestAction) {
-        const result = tacticalMove(state, currentPlayer.id, bestAction.pieceIndex, bestAction.bankDieId);
+        const result = tacticalMove(state, currentPlayer.id, bestAction.pieceIndex, bestAction.bankDieId, bestAction.isPairMove);
         state = result.newState;
         await publishGameEvent(gameCode, 'PIECE_MOVED', state.lastEvent);
         

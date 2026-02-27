@@ -52,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       newState = result.newState;
       await publishGameEvent(gameCode, 'DICE_ROLL', newState.lastEvent);
     } else if (action === 'MOVE') {
-      const { pieceIndex, bankDieId } = payload;
+      const { pieceIndex, bankDieId, isPairMove } = payload;
       
       // Validation is now part of tacticalMove or tacticalIsValid
       if (bankDieId && !tacticalIsValid(gameState, session.playerId!, pieceIndex, bankDieId)) {
@@ -60,7 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return;
       }
 
-      const result = tacticalMove(gameState, session.playerId!, pieceIndex, bankDieId);
+      const result = tacticalMove(gameState, session.playerId!, pieceIndex, bankDieId, isPairMove);
       newState = result.newState;
       
       await publishGameEvent(gameCode, 'PIECE_MOVED', newState.lastEvent);

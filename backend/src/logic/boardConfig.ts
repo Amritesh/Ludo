@@ -116,11 +116,17 @@ export function getPiecePath(color: Color, startPos: number, steps: number): num
       }
       return [];
     } else if (cur < BOARD_SIZE) {
-      const entry = HOME_LANE_ENTRY_INDICES[color];
-      if (cur === entry) {
-        cur = 52;
+      // Piece should skip the forward step before entering tunnel
+      const innerArrow = INNER_ARROW_TAILS[cur];
+      if (innerArrow && innerArrow.eligibleColor === color) {
+        cur = innerArrow.head; // Jump directly to home lane start
       } else {
-        cur = (cur + 1) % BOARD_SIZE;
+        const entry = HOME_LANE_ENTRY_INDICES[color];
+        if (cur === entry) {
+          cur = 52;
+        } else {
+          cur = (cur + 1) % BOARD_SIZE;
+        }
       }
     } else if (cur < HOME_INDEX) {
       cur++;

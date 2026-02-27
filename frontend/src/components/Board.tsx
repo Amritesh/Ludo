@@ -1,3 +1,5 @@
+import { Zap } from 'lucide-react';
+
 const BOARD_SIZE = 15;
 
 export default function Board() {
@@ -29,10 +31,16 @@ export default function Board() {
       
       const isStart = (x === 6 && y === 13) || (x === 1 && y === 6) || (x === 8 && y === 1) || (x === 13 && y === 8);
       const isSafe = safeSquares.some(([sx, sy]) => sx === x && sy === y);
+
+      // Arrow Tails
+      const isOuterTail = (x === 6 && y === 9) || (x === 5 && y === 6) || (x === 8 && y === 5) || (x === 9 && y === 8);
+      const isInnerTail = (x === 0 && y === 7) || (x === 7 && y === 0) || (x === 14 && y === 7) || (x === 7 && y === 14);
       
       if (isSafe) {
         color = 'bg-slate-100';
       }
+      if (isOuterTail) color = 'bg-orange-50';
+      if (isInnerTail) color = 'bg-purple-50';
 
       // Center
       if (x >= 6 && x <= 8 && y >= 6 && y <= 8) {
@@ -50,6 +58,12 @@ export default function Board() {
           )}
           {isSafe && !isStart && (
             <div className="w-1.5 h-1.5 rounded-full bg-slate-200" />
+          )}
+          {isOuterTail && (
+            <Zap size={10} className="text-orange-300 opacity-50" fill="currentColor" />
+          )}
+          {isInnerTail && (
+            <Zap size={10} className="text-purple-300 opacity-50" fill="currentColor" />
           )}
         </div>
       );

@@ -107,6 +107,7 @@ function scoreState(state: GameState, playerId: string): number {
   const player = state.players.find(p => p.id === playerId);
   if (!player) return -1000;
   if (state.winnerId === playerId) return 10000;
+  if (state.winnerId && state.winnerId !== playerId) return -10000;
 
   let score = 0;
 

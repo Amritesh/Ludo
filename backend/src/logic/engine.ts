@@ -266,6 +266,7 @@ export function tacticalMove(
   playerId: string,
   pieceIndex: number,
   bankDieId?: string,
+  preferPairMove?: boolean,
 ): { newState: GameState; bonusTriggers: any[]; discarded: boolean } {
   // Auto-pick die if not specified
   const dieId = bankDieId ?? autoPickBankDie(state, playerId, pieceIndex);
@@ -276,7 +277,13 @@ export function tacticalMove(
 
   // Find the action for this die + piece
   const actions = getLegalActionsForBankEntry(state, playerId, bankEntry);
-  const action = actions.find(a => a.pieceIndex === pieceIndex);
+  let action = actions.find(a => a.pieceIndex === pieceIndex && (preferPairMove === undefined || a.isPairMove === preferPairMove));
+  
+  // Fallback if preference not found
+  if (!action) {
+      action = actions.find(a => a.pieceIndex === pieceIndex);
+  }
+  
   if (!action) throw new Error(`No legal move for piece ${pieceIndex} with die ${dieId}`);
 
   const result = applyTacticalMove(state, playerId, action);

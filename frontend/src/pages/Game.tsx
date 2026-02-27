@@ -17,6 +17,8 @@ export default function Game() {
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [rolling, setRolling] = useState(false);
   const [selectedBankDieId, setSelectedBankDieId] = useState<string | null>(null);
+  const [preferPairMove, setPreferPairMove] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const ablyRef = useRef<Ably.Realtime | null>(null);
   const navigate = useNavigate();
 
@@ -128,6 +130,7 @@ export default function Game() {
   const roll = async () => {
     if (rolling || !gameState) return;
     setRolling(true);
+    setError(null);
     playSound('ROLL');
     try {
       const res = await fetch(`${API_BASE_URL}/api/game/action`, {
@@ -141,10 +144,10 @@ export default function Game() {
         }),
       });
       const data = await res.json();
-      if (data.error) console.warn(data.error);
+      if (data.error) setError(data.error);
       else if (data.gameState) setGameState(data.gameState);
     } catch (err) {
-      console.error(err);
+      setError('Connection error');
     } finally {
       setRolling(false);
     }
@@ -152,6 +155,7 @@ export default function Game() {
 
   const movePiece = async (pieceIndex: number) => {
     if (!gameState) return;
+    setError(null);
     try {
       const res = await fetch(`${API_BASE_URL}/api/game/action`, {
         method: 'POST',
@@ -161,11 +165,11 @@ export default function Game() {
           sessionId,
           action: 'MOVE',
           turnNonce: gameState.turn.turnNonce,
-          payload: { pieceIndex, bankDieId: selectedBankDieId },
+          payload: { pieceIndex, bankDieId: selectedBankDieId, isPairMove: preferPairMove },
         }),
       });
       const data = await res.json();
-      if (data.error) console.warn(data.error);
+      if (data.error) setError(data.error);
       else if (data.gameState) {
         const event = data.gameState.lastEvent;
         if (event?.type === 'PIECE_MOVED') {
@@ -178,7 +182,7 @@ export default function Game() {
         setSelectedBankDieId(null);
       }
     } catch (err) {
-      console.error(err);
+      setError('Connection error');
     }
   };
 
@@ -209,6 +213,21 @@ export default function Game() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center p-4 md:p-8 pb-32">
+      <AnimatePresence>
+        {error && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-4 z-[100] bg-red-500 text-white px-6 py-3 rounded-2xl shadow-2xl font-black flex items-center gap-3"
+          >
+            <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+            {error.toUpperCase()}
+            <button onClick={() => setError(null)} className="ml-4 opacity-50 hover:opacity-100 font-bold">✕</button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="w-full max-w-[600px] flex items-center justify-between mb-8">
         <button 
           onClick={() => navigate('/')}
@@ -279,6 +298,20 @@ export default function Game() {
                 <div className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-2">Bank Exhausted</div>
              )}
            </AnimatePresence>
+
+           <div className="h-8 w-[1px] bg-slate-200 mx-2" />
+           
+           <button
+             onClick={() => setPreferPairMove(!preferPairMove)}
+             className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all ${
+               preferPairMove 
+                 ? 'bg-purple-600 border-purple-600 text-white shadow-md' 
+                 : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'
+             }`}
+           >
+             <div className={`w-2 h-2 rounded-full ${preferPairMove ? 'bg-white' : 'bg-slate-200'}`} />
+             <span className="text-[10px] font-black uppercase tracking-wider">Pair Move</span>
+           </button>
            
            {gameState.turn.discardEvent && (
               <motion.div 

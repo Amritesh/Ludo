@@ -116,8 +116,17 @@ export function applyTacticalMove(
   // 5. Home completion
   if (targetPos === HOME_INDEX) {
     player.homeCount++;
+    // Home completion bonus roll
+    const homeBonus = rollBonusDie('KILL_BONUS', newState.turn.bankSequence++); // reuse KILL_BONUS logic for extra turn
+    newState.turn.bank.push(homeBonus);
+    bonusTriggers.push({ type: 'KILL', roll: homeBonus.value }); // Reuse KILL trigger for UI
+
     if (action.isPairMove && action.pairedPieceIndex !== undefined) {
       player.homeCount++; // Both pieces reach home
+      // Second bonus for second piece
+      const homeBonus2 = rollBonusDie('KILL_BONUS', newState.turn.bankSequence++);
+      newState.turn.bank.push(homeBonus2);
+      bonusTriggers.push({ type: 'KILL', roll: homeBonus2.value });
     }
   }
 
@@ -142,7 +151,7 @@ export function applyTacticalMove(
   };
 
   // 6. Win condition
-  if (player.homeCount === 4) {
+  if (player.homeCount >= 4) {
     newState.status = 'FINISHED';
     newState.winnerId = playerId;
     newState.lastEvent = {
