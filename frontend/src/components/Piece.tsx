@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { getCellCoords, getYardCoords } from '../utils/coords';
-import type { Color } from '../types/game';
+import type { Color, StackType } from '../types/game';
 
 interface PieceProps {
   color: Color;
@@ -9,9 +9,22 @@ interface PieceProps {
   canMove: boolean;
   isTurn: boolean;
   onClick: () => void;
+  stackType?: StackType;
+  stackSize?: number;
+  stackIndex?: number; // index within the stack for offset
 }
 
-export default function Piece({ color, index, position, canMove, isTurn, onClick }: PieceProps) {
+export default function Piece({ 
+  color, 
+  index, 
+  position, 
+  canMove, 
+  isTurn, 
+  onClick, 
+  stackType = 'SINGLE',
+  stackSize = 1,
+  stackIndex = 0
+}: PieceProps) {
   const coords = position === -1 
     ? getYardCoords(color, index)
     : getCellCoords(position, color);
@@ -23,15 +36,22 @@ export default function Piece({ color, index, position, canMove, isTurn, onClick
     BLUE: 'bg-blue-500',
   };
 
+  // Offset pieces in a stack slightly so they are all visible
+  const offset = stackSize > 1 ? (stackIndex - (stackSize - 1) / 2) * 4 : 0;
+
+  const isInvincible = stackType === 'MULTI_STACK_3' || stackType === 'MULTI_STACK_4' || stackType === 'ALLIED_STACK';
+  const isHeavyPair = stackType === 'HEAVY_PAIR';
+
   return (
     <motion.div
       initial={false}
       animate={{
-        left: `${(coords.x / 15) * 100}%`,
-        top: `${(coords.y / 15) * 100}%`,
+        left: `calc(${(coords.x / 15) * 100}% + ${offset}px)`,
+        top: `calc(${(coords.y / 15) * 100}% - ${offset}px)`,
         scale: canMove ? 1.1 : 1,
+        zIndex: isTurn ? 30 : 10 + stackIndex,
       }}
-      whileHover={canMove ? { scale: 1.2 } : {}}
+      whileHover={canMove ? { scale: 1.2, zIndex: 40 } : {}}
       whileTap={canMove ? { scale: 0.9 } : {}}
       transition={{ type: 'spring', stiffness: 400, damping: 25 }}
       onClick={(e) => {
@@ -40,26 +60,43 @@ export default function Piece({ color, index, position, canMove, isTurn, onClick
           onClick();
         }
       }}
-      className={`absolute w-[6.66%] h-[6.66%] p-0.5 z-10 ${canMove ? 'cursor-pointer z-30' : ''}`}
+      className={`absolute w-[6.66%] h-[6.66%] p-0.5 ${canMove ? 'cursor-pointer' : ''}`}
     >
-      {/* Larger hit area for mobile */}
-      {canMove && (
-        <div className="absolute -inset-3 rounded-full" />
-      )}
-      <div className={`w-full h-full rounded-full border-2 border-white shadow-lg relative flex items-center justify-center ${colorClasses[color]} ${canMove ? 'ring-4 ring-white ring-opacity-50' : ''} ${isTurn && !canMove ? 'opacity-90 shadow-sm' : ''}`}>
+      <div className={`w-full h-full rounded-full border-2 shadow-lg relative flex items-center justify-center transition-all ${colorClasses[color]} 
+        ${isHeavyPair ? 'border-slate-900 border-4' : 'border-white'}
+        ${canMove ? 'ring-4 ring-white ring-opacity-50' : ''} 
+        ${isTurn && !canMove ? 'opacity-90 shadow-sm' : ''}
+      `}>
+        
+        {/* Shield Aura for Invincible Stacks */}
+        {isInvincible && (
+          <motion.div
+            animate={{ 
+              scale: [1, 1.3, 1],
+              opacity: [0.3, 0.6, 0.3],
+              rotate: 360 
+            }}
+            transition={{ repeat: Infinity, duration: 3, ease: "linear" }}
+            className="absolute -inset-2 rounded-full border-2 border-dashed border-yellow-400 bg-yellow-400/10"
+          />
+        )}
+
+        {/* Bonded Ring for Heavy Pairs */}
+        {isHeavyPair && (
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
+            className="absolute -inset-1 rounded-full border-2 border-slate-900 border-t-transparent"
+          />
+        )}
+
         <div className="w-1/2 h-1/2 rounded-full bg-white opacity-30"></div>
+        
         {canMove && (
           <motion.div
             animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
             transition={{ repeat: Infinity, duration: 1.5 }}
             className="absolute -inset-1 rounded-full border-2 border-white"
-          />
-        )}
-        {isTurn && (
-           <motion.div
-            animate={{ opacity: [0.3, 0.6, 0.3] }}
-            transition={{ repeat: Infinity, duration: 2 }}
-            className="absolute inset-0 rounded-full bg-white"
           />
         )}
       </div>

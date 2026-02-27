@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getGameState, saveGameState } from '../../../lib/redis';
 import { publishGameEvent } from '../../../lib/ably';
-import { rollDice, applyMove, isValidMove } from '../../../logic/engine';
-import { getBestMove } from '../../../logic/ai';
+import { tacticalRoll, tacticalMove } from '../../../logic/engine';
+import { getBestTacticalMove } from '../../../logic/ai';
 import { GameState } from '../../../types/game';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -33,39 +33,48 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  let newState = gameState;
+  let state = gameState;
 
   try {
-    if (newState.turn.phase === 'NEED_ROLL') {
-      const result = rollDice(newState, currentPlayer.id);
-      newState = result.newState;
-      await publishGameEvent(gameCode, 'DICE_ROLL', { playerId: currentPlayer.id, value: result.roll });
-    } else if (newState.turn.phase === 'NEED_MOVE') {
-      const bestPieceIndex = getBestMove(newState, currentPlayer.id, newState.turn.diceValue!);
-      if (bestPieceIndex !== null) {
-        newState = applyMove(newState, currentPlayer.id, bestPieceIndex, newState.turn.diceValue!);
-        await publishGameEvent(gameCode, 'PIECE_MOVED', newState.lastEvent?.payload);
+    if (state.turn.phase === 'NEED_ROLL') {
+      const result = tacticalRoll(state, currentPlayer.id);
+      state = result.newState;
+      await publishGameEvent(gameCode, 'DICE_ROLL', state.lastEvent);
+    } else if (state.turn.phase === 'NEED_MOVE') {
+      const bestAction = getBestTacticalMove(state, currentPlayer.id);
+      if (bestAction) {
+        const result = tacticalMove(state, currentPlayer.id, bestAction.pieceIndex, bestAction.bankDieId);
+        state = result.newState;
+        await publishGameEvent(gameCode, 'PIECE_MOVED', state.lastEvent);
+        
+        if (result.discarded) {
+            await publishGameEvent(gameCode, 'BANK_DISCARDED', { 
+                playerId: currentPlayer.id, 
+                reason: state.turn.discardEvent?.reason 
+            });
+        }
       } else {
-        // This shouldn't happen if phase is NEED_MOVE, but just in case
-        // Logic in rollDice already handles "no moves possible"
-        res.status(500).json({ error: 'AI found no moves' });
+        // If no moves, bank should have been discarded in tacticalMove or tacticalRoll
+        // but if we are here and bestAction is null, something is wrong or turn should have passed.
+        res.status(200).json({ ok: true, message: 'AI found no moves (turn may have passed)', gameState: state });
         return;
       }
     }
 
-    await saveGameState(newState);
+    await saveGameState(state);
 
-    if (newState.status === 'FINISHED') {
-      await publishGameEvent(gameCode, 'GAME_FINISHED', { winnerId: newState.winnerId });
+    if (state.status === 'FINISHED') {
+      await publishGameEvent(gameCode, 'GAME_FINISHED', state.lastEvent);
     } else {
       await publishGameEvent(gameCode, 'TURN_CHANGED', {
-        playerId: newState.currentTurnPlayerId,
-        turnNonce: newState.turn.turnNonce,
-        phase: newState.turn.phase,
+        playerId: state.currentTurnPlayerId,
+        turnNonce: state.turn.turnNonce,
+        phase: state.turn.phase,
+        bank: state.turn.bank,
       });
     }
 
-    res.status(200).json({ ok: true, gameState: newState });
+    res.status(200).json({ ok: true, gameState: state });
   } catch (error: any) {
     res.status(400).json({ error: error.message });
   }

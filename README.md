@@ -1,6 +1,32 @@
-# Ludo - Web-based Multiplayer Game
+# Ludo Tactical Edition
 
-A real-time, rule-accurate, mobile-first Ludo game built with React, Next.js, and Ably.
+A real-time, rule-accurate, mobile-first Ludo game with advanced tactical mechanics, built with React, Next.js, and Ably.
+
+## ⚔️ Tactical Edition Rules
+
+### 🎲 Strategic Dice Bank
+- **Bank-based Turn**: Instead of moving immediately, rolls are stored in a **Dice Bank**.
+- **Bonus Rolls**: Rolling a 6, landing on an Arrow Tail, or capturing a piece adds extra dice to your bank.
+- **Sequencing**: You must spend ALL dice in your bank to finish your turn.
+- **Auto-Execution**: If a selected piece has only one legal move, it auto-executes.
+
+### 🛡️ Stacking & Combat
+- **Heavy Pair (2 Tokens)**: Moves only on even rolls (2, 4, 6) at half speed. Immune to capture by single tokens.
+- **Invincible Stack (3-4 Tokens)**: Completely immune to capture and acts as a blockade.
+- **Allied Stack**: Tokens from allied houses (Diagonal: Red↔Yellow, Green↔Blue) form an invincible shield when on the same square.
+- **Coexistence**: A single token can land on an enemy Heavy Pair without capture (Sits on top).
+
+### 🏹 Arrow Power
+- **Outer Track Glide**: Landing on an arrow tail glides you to the head and grants a bonus roll.
+- **Inner Turning Track**: Eligible tokens can take shortcuts into the home stretch.
+
+### 🏠 Home Stretch Constraint
+- **Strict Total Sum**: If your ONLY movable tokens are in the home stretch, and the total bank sum exceeds the exact steps needed to finish, the **entire bank is discarded** and your turn ends.
+
+## 🤖 AI Tiers
+- **Easy**: Greedy logic, prioritizes pieces closest to start.
+- **Medium**: Scans for kills, uses arrows, protects safe zones.
+- **Hard**: Evaluates full bank sequences, forms tactical stacks, and avoids home-stretch discard traps.
 
 ## Architecture
 - **Frontend**: React + Vite + TypeScript + Framer Motion (Deployed to GitHub Pages)

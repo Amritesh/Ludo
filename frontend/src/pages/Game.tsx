@@ -2,12 +2,13 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Ably from 'ably';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { GameState } from '../types/game';
+import type { GameState, DiceBankEntry, Piece as PieceType } from '../types/game';
 import Board from '../components/Board';
 import Piece from '../components/Piece';
-import { Dice6, Trophy, ChevronLeft, Users, Zap } from 'lucide-react';
+import { Dice6, Trophy, ChevronLeft, Users, Zap, Trash2 } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import { playSound } from '../utils/sounds';
+import { getSquareOccupants, classifyStack } from '../utils/tactical';
 
 export default function Game() {
   const { code } = useParams<{ code: string }>();
@@ -15,6 +16,7 @@ export default function Game() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [rolling, setRolling] = useState(false);
+  const [selectedBankDieId, setSelectedBankDieId] = useState<string | null>(null);
   const ablyRef = useRef<Ably.Realtime | null>(null);
   const navigate = useNavigate();
 
@@ -54,9 +56,10 @@ export default function Game() {
              setGameState(prev => prev ? { ...prev, status: 'FINISHED', winnerId: msg.data.winnerId } : null);
           } else if (msg.name === 'TURN_CHANGED') {
             setGameState(prev => prev ? { ...prev, currentTurnPlayerId: msg.data.playerId, turn: { ...prev.turn, ...msg.data } } : null);
+            setSelectedBankDieId(null);
           } else if (msg.name === 'DICE_ROLL') {
              if (msg.data.playerId !== playerId) playSound('ROLL');
-             setGameState(prev => prev ? { ...prev, turn: { ...prev.turn, diceValue: msg.data.value, phase: 'NEED_MOVE' } } : null);
+             setGameState(prev => prev ? { ...prev, turn: { ...prev.turn, ...msg.data.payload } } : null);
           } else if (msg.name === 'PIECE_MOVED') {
              const event = msg.data;
              if (event?.playerId !== playerId && event?.type === 'PIECE_MOVED') {
@@ -64,6 +67,9 @@ export default function Game() {
                else if (event.payload.to === 58) playSound('HOME');
                else playSound('MOVE');
              }
+             refreshFullState();
+          } else if (msg.name === 'BANK_DISCARDED') {
+             playSound('CUT'); // Use cut sound for discard for now
              refreshFullState();
           }
         });
@@ -86,7 +92,6 @@ export default function Game() {
   useEffect(() => {
     fetchState();
 
-    // Fallback polling if Ably fails
     const interval = setInterval(() => {
       if (!ablyRef.current || ablyRef.current.connection.state !== 'connected') {
         refreshFullState();
@@ -115,10 +120,10 @@ export default function Game() {
         } catch (err) {
           console.error('AI Step failed:', err);
         }
-      }, 2000);
+      }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [gameState?.currentTurnPlayerId, gameState?.turn.phase]);
+  }, [gameState?.currentTurnPlayerId, gameState?.turn.phase, gameState?.turn.bank.length]);
 
   const roll = async () => {
     if (rolling || !gameState) return;
@@ -156,7 +161,7 @@ export default function Game() {
           sessionId,
           action: 'MOVE',
           turnNonce: gameState.turn.turnNonce,
-          payload: { pieceIndex },
+          payload: { pieceIndex, bankDieId: selectedBankDieId },
         }),
       });
       const data = await res.json();
@@ -170,6 +175,7 @@ export default function Game() {
         }
         if (data.gameState.status === 'FINISHED') playSound('WIN');
         setGameState(data.gameState);
+        setSelectedBankDieId(null);
       }
     } catch (err) {
       console.error(err);
@@ -177,40 +183,6 @@ export default function Game() {
   };
 
   const isMyTurn = gameState?.currentTurnPlayerId === playerId;
-
-  const canMovePiece = (player: any, pieceIndex: number, diceValue: number) => {
-    const piece = player.pieces[pieceIndex];
-    if (piece.position === 58) return false;
-    if (piece.position === -1) return diceValue === 6;
-    if (piece.position >= 52) {
-        return piece.position + diceValue <= 58;
-    }
-    return true; 
-  };
-
-  useEffect(() => {
-    if (isMyTurn && gameState?.turn.phase === 'NEED_MOVE' && gameState.turn.diceValue) {
-      const myPlayer = gameState.players.find(p => p.id === playerId);
-      if (myPlayer) {
-        const moveablePieces = myPlayer.pieces
-          .map((_, idx) => idx)
-          .filter(idx => canMovePiece(myPlayer, idx, gameState.turn.diceValue!));
-        
-        if (moveablePieces.length === 1) {
-          movePiece(moveablePieces[0]);
-        }
-      }
-    }
-  }, [gameState?.turn.phase, gameState?.turn.diceValue, isMyTurn]);
-
-  if (!gameState) return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center">
-      <div className="w-12 h-12 border-4 border-slate-200 border-t-red-500 rounded-full animate-spin mb-4" />
-      <p className="text-slate-500 font-bold">CONNECTING TO GAME...</p>
-    </div>
-  );
-
-  const currentTurnPlayer = gameState.players.find(p => p.id === gameState.currentTurnPlayerId)!;
 
   const colorMap: Record<string, string> = {
     RED: 'text-red-500',
@@ -225,6 +197,15 @@ export default function Game() {
     YELLOW: 'bg-yellow-500',
     BLUE: 'bg-blue-500',
   };
+
+  if (!gameState) return (
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center">
+      <div className="w-12 h-12 border-4 border-slate-200 border-t-red-500 rounded-full animate-spin mb-4" />
+      <p className="text-slate-500 font-bold">CONNECTING TO GAME...</p>
+    </div>
+  );
+
+  const currentTurnPlayer = gameState.players.find(p => p.id === gameState.currentTurnPlayerId)!;
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center p-4 md:p-8 pb-32">
@@ -252,7 +233,7 @@ export default function Game() {
       </div>
 
       <div className="w-full max-w-[600px] bg-white p-4 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 mb-8">
-        <div className="flex items-center justify-between mb-6 px-2">
+        <div className="flex items-center justify-between mb-4 px-2">
           <div className="flex items-center gap-4">
              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg transition-all ${bgMap[currentTurnPlayer.color]} ${isMyTurn ? 'ring-4 ring-offset-2 ring-slate-100' : ''}`}>
                {gameState.turn.phase === 'NEED_ROLL' ? (
@@ -266,36 +247,79 @@ export default function Game() {
                  {isMyTurn ? 'YOUR TURN' : `${currentTurnPlayer.name.toUpperCase()}'S TURN`}
                </div>
                <div className={`text-lg font-black ${colorMap[currentTurnPlayer.color]}`}>
-                 {gameState.turn.phase === 'NEED_ROLL' ? 'Waiting for Roll' : `Moving (${gameState.turn.diceValue})`}
+                 {gameState.turn.phase === 'NEED_ROLL' ? 'Waiting for Roll' : 'Tactical Phase'}
                </div>
              </div>
           </div>
+        </div>
 
-          <div className="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-2xl border border-slate-100">
-             <span className="text-2xl font-black text-slate-900">{gameState.turn.diceValue || '-'}</span>
-          </div>
+        {/* Dice Bank UI */}
+        <div className="flex flex-wrap gap-2 mb-6 px-2 min-h-[64px] items-center bg-slate-50/50 p-3 rounded-2xl border border-dashed border-slate-200">
+           <AnimatePresence mode="popLayout">
+             {gameState.turn.bank.map((die) => (
+               <motion.button
+                 key={die.id}
+                 layout
+                 initial={{ scale: 0, opacity: 0 }}
+                 animate={{ scale: 1, opacity: 1 }}
+                 exit={{ scale: 0, opacity: 0 }}
+                 whileHover={{ scale: 1.1 }}
+                 whileTap={{ scale: 0.9 }}
+                 onClick={() => isMyTurn && setSelectedBankDieId(die.id)}
+                 className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-sm border-2 transition-all ${
+                   selectedBankDieId === die.id 
+                     ? 'bg-slate-900 border-slate-900 text-white' 
+                     : 'bg-white border-slate-200 text-slate-900'
+                 }`}
+               >
+                 <span className="text-xl font-black">{die.value}</span>
+               </motion.button>
+             ))}
+             {gameState.turn.bank.length === 0 && gameState.turn.phase === 'NEED_MOVE' && (
+                <div className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-2">Bank Exhausted</div>
+             )}
+           </AnimatePresence>
+           
+           {gameState.turn.discardEvent && (
+              <motion.div 
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex items-center gap-2 text-red-500 bg-red-50 px-3 py-1.5 rounded-lg border border-red-100"
+              >
+                <Trash2 size={14} />
+                <span className="text-[10px] font-black uppercase tracking-wider">{gameState.turn.discardEvent.reason}</span>
+              </motion.div>
+           )}
         </div>
 
         <div className="relative aspect-square rounded-xl overflow-hidden shadow-inner bg-slate-50">
           <Board />
           {gameState.players.map(player => 
-            player.pieces.map((piece, idx) => (
-              <Piece
-                key={`${player.id}-${idx}`}
-                color={player.color}
-                index={idx}
-                position={piece.position}
-                isTurn={gameState.currentTurnPlayerId === player.id}
-                canMove={
-                  gameState.currentTurnPlayerId === player.id && 
-                  player.id === playerId &&
-                  gameState.turn.phase === 'NEED_MOVE' && 
-                  gameState.turn.diceValue !== undefined &&
-                  canMovePiece(player, idx, gameState.turn.diceValue)
-                }
-                onClick={() => movePiece(idx)}
-              />
-            ))
+            player.pieces.map((piece, idx) => {
+              const occupants = getSquareOccupants(gameState.players, piece.position);
+              const stackType = classifyStack(occupants, piece.position);
+              const stackIndex = occupants.findIndex(o => o.playerId === player.id && o.pieceIndex === idx);
+              
+              return (
+                <Piece
+                  key={`${player.id}-${idx}`}
+                  color={player.color}
+                  index={idx}
+                  position={piece.position}
+                  stackType={stackType}
+                  stackSize={occupants.length}
+                  stackIndex={stackIndex >= 0 ? stackIndex : 0}
+                  isTurn={gameState.currentTurnPlayerId === player.id}
+                  canMove={
+                    gameState.currentTurnPlayerId === player.id && 
+                    player.id === playerId &&
+                    gameState.turn.phase === 'NEED_MOVE' && 
+                    gameState.turn.bank.length > 0
+                  }
+                  onClick={() => movePiece(idx)}
+                />
+              );
+            })
           )}
 
           <AnimatePresence>

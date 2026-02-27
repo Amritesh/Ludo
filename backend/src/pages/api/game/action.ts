@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getGameState, saveGameState, getSession } from '../../../lib/redis';
 import { publishGameEvent } from '../../../lib/ably';
-import { rollDice, applyMove, isValidMove } from '../../../logic/engine';
+import { tacticalRoll, tacticalMove, tacticalIsValid } from '../../../logic/engine';
 import { GameState, SessionData } from '../../../types/game';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -40,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (gameState.turn.turnNonce !== turnNonce) {
-    res.status(400).json({ error: `Invalid or stale turn nonce (received: ${turnNonce}, expected: ${gameState.turn.turnNonce})` });
+    res.status(400).json({ error: `Invalid or stale turn nonce` });
     return;
   }
 
@@ -48,17 +48,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     if (action === 'ROLL') {
-      const result = rollDice(gameState, session.playerId!);
+      const result = tacticalRoll(gameState, session.playerId!);
       newState = result.newState;
-      await publishGameEvent(gameCode, 'DICE_ROLL', { playerId: session.playerId, value: result.roll });
+      await publishGameEvent(gameCode, 'DICE_ROLL', newState.lastEvent);
     } else if (action === 'MOVE') {
-      const { pieceIndex } = payload;
-      if (!isValidMove(gameState, session.playerId!, pieceIndex, gameState.turn.diceValue!)) {
-        res.status(400).json({ error: 'Invalid move' });
+      const { pieceIndex, bankDieId } = payload;
+      
+      // Validation is now part of tacticalMove or tacticalIsValid
+      if (bankDieId && !tacticalIsValid(gameState, session.playerId!, pieceIndex, bankDieId)) {
+        res.status(400).json({ error: 'Invalid tactical move' });
         return;
       }
-      newState = applyMove(gameState, session.playerId!, pieceIndex, gameState.turn.diceValue!);
+
+      const result = tacticalMove(gameState, session.playerId!, pieceIndex, bankDieId);
+      newState = result.newState;
+      
       await publishGameEvent(gameCode, 'PIECE_MOVED', newState.lastEvent);
+      
+      if (result.discarded) {
+          // If bank was discarded, notify specifically
+          await publishGameEvent(gameCode, 'BANK_DISCARDED', { 
+              playerId: session.playerId, 
+              reason: newState.turn.discardEvent?.reason 
+          });
+      }
     } else {
       res.status(400).json({ error: 'Unknown action' });
       return;
@@ -68,12 +81,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Notify turn change or game finish
     if (newState.status === 'FINISHED') {
-       await publishGameEvent(gameCode, 'GAME_FINISHED', { winnerId: newState.winnerId });
+       await publishGameEvent(gameCode, 'GAME_FINISHED', newState.lastEvent);
     } else {
        await publishGameEvent(gameCode, 'TURN_CHANGED', {
          playerId: newState.currentTurnPlayerId,
          turnNonce: newState.turn.turnNonce,
          phase: newState.turn.phase,
+         bank: newState.turn.bank,
        });
     }
 
