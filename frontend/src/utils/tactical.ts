@@ -1,9 +1,9 @@
-import type { GameState, Color, Player, Piece, StackType, StackDescriptor, SquareOccupant } from '../types/game';
+import type { Player, StackType, SquareOccupant } from '../types/game';
 
 /**
  * Client-side mirror of stack classification logic.
  */
-export function classifyStack(occupants: SquareOccupant[], position: number): StackType {
+export function classifyStack(occupants: SquareOccupant[], _position: number): StackType {
   if (occupants.length === 0) return 'EMPTY';
   if (occupants.length === 1) return 'SINGLE';
 

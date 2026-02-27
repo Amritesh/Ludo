@@ -30,6 +30,8 @@ function createMockGameState(): GameState {
     currentTurnPlayerId: '1',
     turn: {
       phase: 'NEED_ROLL',
+      bank: [],
+      bankSequence: 0,
       turnNonce: 'nonce1',
       extraTurnChain: 0,
     },

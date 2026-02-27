@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Ably from 'ably';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { GameState, DiceBankEntry, Piece as PieceType } from '../types/game';
+import type { GameState } from '../types/game';
 import Board from '../components/Board';
 import Piece from '../components/Piece';
 import { Dice6, Trophy, ChevronLeft, Users, Zap, Trash2 } from 'lucide-react';

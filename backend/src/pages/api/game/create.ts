@@ -40,6 +40,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     currentTurnPlayerId: playerId,
     turn: {
       phase: 'NEED_ROLL',
+      bank: [],
+      bankSequence: 0,
       turnNonce: nanoid(10),
       extraTurnChain: 0,
     },
